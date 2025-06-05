@@ -1,34 +1,45 @@
-
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
+from app.db.database import SessionLocal, engine, Base
 from sqlalchemy.orm import Session
-from app.db.models import User
-from app.db.database import SessionLocal
+from app.models.user import User
 from passlib.context import CryptContext
 
 router = APIRouter(prefix="/auth")
+
+Base.metadata.create_all(bind=engine)
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-class UserCreate(BaseModel):
+class RegisterInput(BaseModel):
+    email: str
+    password: str
+    first_name: str
+    surname: str
+
+class LoginInput(BaseModel):
     email: str
     password: str
 
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
 @router.post("/register")
-def register(user: UserCreate):
-    db: Session = SessionLocal()
-    existing_user = db.query(User).filter(User.email == user.email).first()
-    if existing_user:
-        raise HTTPException(status_code=400, detail="Email already exists")
-    new_user = User(email=user.email, hashed_password=pwd_context.hash(user.password))
-    db.add(new_user)
+def register(data: RegisterInput, db: Session = Depends(get_db)):
+    if db.query(User).filter(User.email == data.email).first():
+        raise HTTPException(status_code=400, detail="Email already registered")
+    hashed_password = pwd_context.hash(data.password)
+    user = User(email=data.email, password=hashed_password, first_name=data.first_name, surname=data.surname)
+    db.add(user)
     db.commit()
-    db.refresh(new_user)
     return {"message": "User created successfully"}
 
 @router.post("/login")
-def login(user: UserCreate):
-    db: Session = SessionLocal()
-    db_user = db.query(User).filter(User.email == user.email).first()
-    if not db_user or not pwd_context.verify(user.password, db_user.hashed_password):
-        raise HTTPException(status_code=400, detail="Invalid credentials")
-    return {"access_token": "fake-token-for-demo"}
+def login(data: LoginInput, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.email == data.email).first()
+    if not user or not pwd_context.verify(data.password, user.password):
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    return {"message": "Login successful", "first_name": user.first_name}
