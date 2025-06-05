@@ -7,8 +7,7 @@ from .routes.picks import router as picks_router
 from .routes.admin import router as admin_router
 from .routes.leaderboard import router as leaderboard_router
 
-from app.db.init_db import init_db
-init_db()
+
 
 app = FastAPI()
 
