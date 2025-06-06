@@ -12,9 +12,10 @@ const app = express();
 // --- START: CORS Configuration with Logging ---
 
 const allowedOrigins = [
-    'https://mag7-lms.vercel.app',
-    'https://mag7-colsubi1y-james-projects-042a09cc.vercel.app',
-    'http://localhost:3000'
+    'https://mag7-lms.vercel.app',                           // Vercel Production URL
+    'https://mag7-colsubi1y-james-projects-042a09cc.vercel.app', // Vercel Preview URL
+    'https://mag7lms.netlify.app',                          // NEW: Netlify URL
+    'http://localhost:3000'                                 // Local Development URL
 ];
 
 const corsOptions = {
