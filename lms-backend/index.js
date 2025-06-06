@@ -9,23 +9,24 @@ const competitionRoutes = require('./routes/competition');
 
 const app = express();
 
-// --- START: Production-Ready CORS Configuration ---
+// --- START: CORS Configuration with Logging ---
 
-// Define the list of allowed origins (your frontend URLs)
 const allowedOrigins = [
-    'https://mag7-lms.vercel.app', // Your production frontend
-    'http://localhost:3000'        // Your local development frontend
+    'https://mag7-lms.vercel.app',
+    'https://mag7-colsubi1y-james-projects-042a09cc.vercel.app',
+    'http://localhost:3000'
 ];
 
 const corsOptions = {
     origin: function (origin, callback) {
-        // The 'origin' is the URL of the site making the request (e.g., https://mag7-lms.vercel.app)
-        // We check if this origin is in our list of allowed sites.
+        // Log the incoming request's origin for debugging
+        console.log(`[CORS] Request received from origin: ${origin}`);
+
         if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
-            // If it is, or if the request has no origin (like a mobile app or curl), allow it.
+            console.log(`[CORS] Origin allowed: ${origin}`);
             callback(null, true);
         } else {
-            // If it's not, block it.
+            console.error(`[CORS] Origin blocked: ${origin}`);
             callback(new Error('Not allowed by CORS'));
         }
     },
@@ -33,11 +34,9 @@ const corsOptions = {
     credentials: true,
 };
 
-// Use the new CORS options
 app.use(cors(corsOptions));
 
-// --- END: Production-Ready CORS Configuration ---
-
+// --- END: CORS Configuration with Logging ---
 
 app.use(express.json());
 
